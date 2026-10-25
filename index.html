@@ -1,0 +1,965 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>ColdGuard — Система мониторинга температуры холодильного оборудования</title>
+  <meta name="description" content="Профессиональная IoT B2B-система температурного мониторинга холодильных и морозильных камер для магазинов, кафе и пекарен.">
+  <link rel="stylesheet" href="style.css">
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='%23173B63'><path d='M12 2L4 5v6.09c0 5.05 3.41 9.76 8 10.91 4.59-1.15 8-5.86 8-10.91V5l-8-3zm1 14.76V11a2 2 0 10-2 0v5.76a3 3 0 102 0z'/></svg>">
+</head>
+<body>
+  <div class="app-container">
+
+    <!-- ======================================================================
+         SIDEBAR NAVIGATION
+         ====================================================================== -->
+    <aside class="sidebar" id="sidebar">
+      <div class="sidebar-header">
+        <a href="#overview" class="brand-link" id="brandLogoLink">
+          <div class="brand-logo-icon">
+            <!-- Custom ColdGuard Logo: Technical Shield + Thermometer Symbol -->
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" fill="rgba(255,255,255,0.08)"/>
+              <circle cx="12" cy="14" r="2.5" fill="currentColor"/>
+              <path d="M12 8v4" stroke-width="2.5"/>
+            </svg>
+          </div>
+          <div class="brand-text">
+            <span class="brand-title">ColdGuard</span>
+            <span class="brand-tagline">IoT Telemetry Platform</span>
+          </div>
+        </a>
+      </div>
+
+      <nav class="sidebar-nav">
+        <div class="nav-section-title">Основное</div>
+
+        <a class="nav-item active" data-view="overview" id="nav-overview">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor">
+            <rect x="3" y="3" width="7" height="9" rx="1"/>
+            <rect x="14" y="3" width="7" height="5" rx="1"/>
+            <rect x="14" y="12" width="7" height="9" rx="1"/>
+            <rect x="3" y="16" width="7" height="5" rx="1"/>
+          </svg>
+          <span>Обзор</span>
+        </a>
+
+        <a class="nav-item" data-view="equipment" id="nav-equipment">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor">
+            <rect x="4" y="2" width="16" height="20" rx="2"/>
+            <line x1="12" y1="2" x2="12" y2="22"/>
+            <line x1="8" y1="10" x2="8" y2="12"/>
+            <line x1="16" y1="10" x2="16" y2="12"/>
+          </svg>
+          <span>Оборудование</span>
+        </a>
+
+        <a class="nav-item" data-view="history" id="nav-history">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor">
+            <circle cx="12" cy="12" r="10"/>
+            <polyline points="12 6 12 12 16 14"/>
+          </svg>
+          <span>История измерений</span>
+        </a>
+
+        <a class="nav-item" data-view="alerts" id="nav-alerts">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor">
+            <path d="M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z"/>
+            <line x1="12" y1="9" x2="12" y2="13"/>
+            <line x1="12" y1="17" x2="12.01" y2="17"/>
+          </svg>
+          <span>Предупреждения</span>
+          <span class="nav-badge" id="sidebarAlertsCount">1</span>
+        </a>
+
+        <div class="nav-section-title">Конфигурация</div>
+
+        <a class="nav-item" data-view="settings" id="nav-settings">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor">
+            <line x1="4" y1="21" x2="4" y2="14"/>
+            <line x1="4" y1="10" x2="4" y2="3"/>
+            <line x1="12" y1="21" x2="12" y2="12"/>
+            <line x1="12" y1="8" x2="12" y2="3"/>
+            <line x1="20" y1="21" x2="20" y2="16"/>
+            <line x1="20" y1="12" x2="20" y2="3"/>
+            <line x1="1" y1="14" x2="7" y2="14"/>
+            <line x1="9" y1="8" x2="15" y2="8"/>
+            <line x1="17" y1="16" x2="23" y2="16"/>
+          </svg>
+          <span>Настройки</span>
+        </a>
+      </nav>
+
+      <!-- Sidebar Footer Status Card -->
+      <div class="sidebar-footer">
+        <div class="hardware-card">
+          <div class="hardware-card-header">
+            <div class="hardware-title">
+              <span class="status-dot disconnected" id="sidebarDot"></span>
+              <span>Датчик: USB COM</span>
+            </div>
+            <span class="demo-pill" id="sidebarDemoPill" title="Используется демонстрационная телеметрия">Демо-режим</span>
+          </div>
+          <div class="hardware-card-desc" id="sidebarStatusText">
+            Физический COM-мост не подключен. Отображаются тестовые данные.
+          </div>
+          <button class="btn-sidebar-connect" id="btnSidebarConnect">
+            <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M12 2v10m0 0l3-3m-3 3l-3-3M2 17l10 5 10-5M2 12l10 5 10-5"/>
+            </svg>
+            Подключить Arduino
+          </button>
+        </div>
+        <div class="sidebar-version">ColdGuard Enterprise v1.2</div>
+      </div>
+    </aside>
+
+    <!-- ======================================================================
+         MAIN APPLICATION AREA
+         ====================================================================== -->
+    <div class="main-wrapper">
+      
+      <!-- Top Header Navigation Bar -->
+      <header class="top-header">
+        <div class="header-left">
+          <button class="mobile-menu-btn" id="mobileMenuBtn" aria-label="Открыть меню">
+            <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2">
+              <line x1="3" y1="12" x2="21" y2="12"/>
+              <line x1="3" y1="6" x2="21" y2="6"/>
+              <line x1="3" y1="18" x2="21" y2="18"/>
+            </svg>
+          </button>
+          
+          <div class="page-breadcrumb">
+            <span class="breadcrumb-root">ColdGuard</span>
+            <span class="breadcrumb-sep">/</span>
+            <span class="breadcrumb-current" id="headerBreadcrumbTitle">Обзор системы</span>
+          </div>
+        </div>
+
+        <div class="header-right">
+          <div class="header-telemetry-status" title="Статус поступления телеметрических пакетов">
+            <span class="live-indicator-dot"></span>
+            <span id="telemetryStatusLabel">Демо-поток активен</span>
+            <span style="color:var(--text-light); margin:0 4px;">•</span>
+            <span id="headerLastUpdate" style="font-family:var(--font-mono); font-size:12px;">14:35:10</span>
+          </div>
+
+          <div class="header-actions">
+            <button class="btn btn-secondary btn-sm" id="btnHeaderConnect">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <circle cx="12" cy="12" r="3"/>
+                <path d="M19.4 15a1.65 1.65 0 00.33 1.82l.06.06a2 2 0 010 2.83 2 2 0 01-2.83 0l-.06-.06a1.65 1.65 0 00-1.82-.33 1.65 1.65 0 00-1 1.51V21a2 2 0 01-2 2 2 2 0 01-2-2v-.09A1.65 1.65 0 009 19.4a1.65 1.65 0 00-1.82.33l-.06.06a2 2 0 01-2.83 0 2 2 0 010-2.83l.06-.06a1.65 1.65 0 00.33-1.82 1.65 1.65 0 00-1.51-1H3a2 2 0 01-2-2 2 2 0 012-2h.09A1.65 1.65 0 004.6 9a1.65 1.65 0 00-.33-1.82l-.06-.06a2 2 0 010-2.83 2 2 0 012.83 0l.06.06a1.65 1.65 0 001.82.33H9a1.65 1.65 0 001-1.51V3a2 2 0 012-2 2 2 0 012 2v.09a1.65 1.65 0 001 1.51 1.65 1.65 0 001.82-.33l.06-.06a2 2 0 012.83 0 2 2 0 010 2.83l-.06.06a1.65 1.65 0 00-.33 1.82V9a1.65 1.65 0 001.51 1H21a2 2 0 012 2 2 2 0 01-2 2h-.09a1.65 1.65 0 00-1.51 1z"/>
+              </svg>
+              <span>Подключить датчик</span>
+            </button>
+          </div>
+        </div>
+      </header>
+
+      <!-- Content Views Container -->
+      <main class="content-body">
+
+        <!-- ==================================================================
+             VIEW 1: OVERVIEW (ГЛАВНЫЙ ЭКРАН)
+             ================================================================== -->
+        <section class="page-view active" id="view-overview">
+          <div class="view-header">
+            <div class="view-title-group">
+              <h1>
+                Обзор системы
+                <span class="demo-watermark-tag" id="overviewWatermarkTag" title="Данные сгенерированы демонстрационным генератором телеметрии">
+                  <svg viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" stroke-width="2.5">
+                    <circle cx="12" cy="12" r="10"/>
+                    <line x1="12" y1="16" x2="12" y2="12"/>
+                    <line x1="12" y1="8" x2="12.01" y2="8"/>
+                  </svg>
+                  ДЕМО-РЕЖИМ
+                </span>
+              </h1>
+              <p class="view-subtitle">Контроль температуры холодильного оборудования в режиме реального времени</p>
+            </div>
+            
+            <div class="view-actions">
+              <button class="btn btn-secondary btn-sm" id="btnQuickReport">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/>
+                  <polyline points="7 10 12 15 17 10"/>
+                  <line x1="12" y1="15" x2="12" y2="3"/>
+                </svg>
+                Экспорт суточного отчета
+              </button>
+            </div>
+          </div>
+
+          <!-- 4 Compact Key Metric Cards -->
+          <div class="kpi-grid">
+            <!-- 1. Current Temperature -->
+            <div class="kpi-card" id="kpiCardTemp">
+              <div class="kpi-header">
+                <span class="kpi-title">Текущая температура</span>
+                <div class="kpi-icon-wrap">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M14 14.76V3.5a2.5 2.5 0 00-5 0v11.26a4.5 4.5 0 105 0z"/>
+                  </svg>
+                </div>
+              </div>
+              <div class="kpi-value-row">
+                <span class="kpi-value" id="kpiCurrentTemp">+3.8 °C</span>
+                <span class="kpi-badge badge badge-normal" id="kpiTempBadge">
+                  <span class="badge-dot"></span>В норме
+                </span>
+              </div>
+              <div class="kpi-footer">
+                Допустимо: <strong id="kpiAllowedRange">+2.0 ... +6.0 °C</strong>
+              </div>
+            </div>
+
+            <!-- 2. Connected Devices -->
+            <div class="kpi-card">
+              <div class="kpi-header">
+                <span class="kpi-title">Оборудование онлайн</span>
+                <div class="kpi-icon-wrap">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <rect x="2" y="2" width="20" height="8" rx="2"/>
+                    <rect x="2" y="14" width="20" height="8" rx="2"/>
+                    <line x1="6" y1="6" x2="6.01" y2="6"/>
+                    <line x1="6" y1="18" x2="6.01" y2="18"/>
+                  </svg>
+                </div>
+              </div>
+              <div class="kpi-value-row">
+                <span class="kpi-value" id="kpiDevicesCount">3 камеры</span>
+              </div>
+              <div class="kpi-footer">
+                <span style="color:var(--status-normal); font-weight:600;">2 в норме</span>, 1 на обслуживании
+              </div>
+            </div>
+
+            <!-- 3. Active Alerts -->
+            <div class="kpi-card" id="kpiCardAlerts">
+              <div class="kpi-header">
+                <span class="kpi-title">Активные предупреждения</span>
+                <div class="kpi-icon-wrap">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z"/>
+                    <line x1="12" y1="9" x2="12" y2="13"/>
+                    <line x1="12" y1="17" x2="12.01" y2="17"/>
+                  </svg>
+                </div>
+              </div>
+              <div class="kpi-value-row">
+                <span class="kpi-value" id="kpiAlertsVal" style="color:var(--status-warning);">1</span>
+                <span class="kpi-badge badge badge-warning" id="kpiAlertBadge">Внимание</span>
+              </div>
+              <div class="kpi-footer" id="kpiAlertSubtitle">
+                Зафиксировано 1 отклонение за 24 ч
+              </div>
+            </div>
+
+            <!-- 4. Last Measurement Time -->
+            <div class="kpi-card">
+              <div class="kpi-header">
+                <span class="kpi-title">Время замера</span>
+                <div class="kpi-icon-wrap">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <circle cx="12" cy="12" r="10"/>
+                    <polyline points="12 6 12 12 16 14"/>
+                  </svg>
+                </div>
+              </div>
+              <div class="kpi-value-row">
+                <span class="kpi-value" id="kpiLastTimeAgo" style="font-size:22px;">5 сек назад</span>
+              </div>
+              <div class="kpi-footer" id="kpiExactTimestamp">
+                Фиксация: Сегодня, 14:35:10
+              </div>
+            </div>
+          </div>
+
+          <!-- Main 24-Hour Temperature Chart Block -->
+          <div class="card-panel">
+            <div class="card-panel-header">
+              <div class="card-title-wrap">
+                <div class="card-panel-title">
+                  <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2">
+                    <polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/>
+                  </svg>
+                  Динамика температуры за последние 24 часа
+                </div>
+                <div class="card-panel-subtitle">
+                  Холодильная камера № 1 (Основной торговый зал) • Пороги: <span id="chartSubtitleLimits">+2.0 ... +6.0 °C</span>
+                </div>
+              </div>
+
+              <div class="card-header-controls">
+                <div class="timeframe-selector">
+                  <button class="timeframe-btn" data-hours="6">6ч</button>
+                  <button class="timeframe-btn" data-hours="12">12ч</button>
+                  <button class="timeframe-btn active" data-hours="24">24ч</button>
+                </div>
+              </div>
+            </div>
+
+            <div class="chart-content">
+              <!-- Visual Legend -->
+              <div class="chart-legend-bar">
+                <div class="legend-item">
+                  <div class="legend-indicator telemetry"></div>
+                  <span>Показания датчика DS18B20</span>
+                </div>
+                <div class="legend-item">
+                  <div class="legend-indicator zone"></div>
+                  <span>Допустимый диапазон (<span id="legendLimitsSpan">+2.0 ... +6.0 °C</span>)</span>
+                </div>
+                <div class="legend-item">
+                  <div class="legend-indicator upper-limit"></div>
+                  <span>Верхний предел (<span id="legendUpperLimit">+6.0 °C</span>)</span>
+                </div>
+                <div class="legend-item">
+                  <div class="legend-indicator lower-limit"></div>
+                  <span>Нижний предел (<span id="legendLowerLimit">+2.0 °C</span>)</span>
+                </div>
+              </div>
+
+              <!-- Interactive Custom SVG Chart Container -->
+              <div class="chart-svg-container" id="chartSvgWrapper">
+                <svg class="chart-svg" id="temperatureChartSvg" preserveAspectRatio="none">
+                  <defs>
+                    <linearGradient id="telemetryGradient" x1="0%" y1="0%" x2="0%" y2="100%">
+                      <stop offset="0%" stop-color="#0284C7" stop-opacity="0.35"/>
+                      <stop offset="100%" stop-color="#0284C7" stop-opacity="0.0"/>
+                    </linearGradient>
+                  </defs>
+                  <!-- SVG elements rendered dynamically via JavaScript -->
+                </svg>
+                <!-- Chart Hover Tooltip -->
+                <div class="chart-tooltip" id="chartTooltip">
+                  <div class="chart-tooltip-time" id="tooltipTime">--:--</div>
+                  <div class="chart-tooltip-temp" id="tooltipTemp">+0.0 °C</div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Overview Bottom Split Grid: Primary Equipment Spotlight & Recent Events -->
+          <div class="overview-split-grid">
+            <!-- Left: Device Spotlight Card -->
+            <div class="device-spotlight-card">
+              <div class="spotlight-top-row">
+                <div>
+                  <h3 class="spotlight-meta-name" id="spotlightDeviceName">Холодильная камера № 1</h3>
+                  <p class="spotlight-meta-type">Категория: Среднетемпературное холодильное оборудование</p>
+                </div>
+                <span class="badge badge-normal" id="spotlightStatusBadge">
+                  <span class="badge-dot"></span>В норме
+                </span>
+              </div>
+
+              <div class="spotlight-temp-display">
+                <div class="spotlight-temp-num" id="spotlightCurrentTemp">+3.8 °C</div>
+                <div class="spotlight-temp-details">
+                  <span class="spotlight-range-text">Установленные пороги: <strong class="spotlight-target-val" id="spotlightLimitsText">+2.0 °C ... +6.0 °C</strong></span>
+                  <span style="font-size:12px; color:var(--text-muted);" id="spotlightSensorDesc">
+                    Датчик: <code>DS18B20 #28-FF641E</code> (1-Wire цифровой • демо-моделирование)
+                  </span>
+                </div>
+              </div>
+
+              <div class="device-spec-grid">
+                <div class="spec-item">
+                  <span class="spec-label">Локация / Назначение</span>
+                  <span class="spec-value">Основной зал • Молочная продукция</span>
+                </div>
+                <div class="spec-item">
+                  <span class="spec-label">Агрегат / Компрессор</span>
+                  <span class="spec-value">Embraco Aspera 1.1 кВт (R404a)</span>
+                </div>
+                <div class="spec-item">
+                  <span class="spec-label">Интервал снятия показаний</span>
+                  <span class="spec-value" id="spotlightInterval">Каждые 10 секунд</span>
+                </div>
+                <div class="spec-item">
+                  <span class="spec-label">Время последнего замера</span>
+                  <span class="spec-value" id="spotlightLastMeasured">Сегодня, 14:35:10</span>
+                </div>
+              </div>
+
+              <div class="spotlight-footer-actions">
+                <button class="btn btn-secondary btn-sm" id="btnGoToSettings">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <line x1="4" y1="21" x2="4" y2="14"/>
+                    <line x1="4" y1="10" x2="4" y2="3"/>
+                    <line x1="12" y1="21" x2="12" y2="12"/>
+                    <line x1="12" y1="8" x2="12" y2="3"/>
+                    <line x1="20" y1="21" x2="20" y2="16"/>
+                    <line x1="20" y1="12" x2="20" y2="3"/>
+                  </svg>
+                  Настроить пороги
+                </button>
+                <button class="btn btn-secondary btn-sm" id="btnGoToHistory">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <circle cx="12" cy="12" r="10"/>
+                    <polyline points="12 6 12 12 16 14"/>
+                  </svg>
+                  Полная история
+                </button>
+              </div>
+            </div>
+
+            <!-- Right: Recent Events Feed -->
+            <div class="events-card">
+              <div class="events-header">
+                <h3 class="events-title">Журнал последних событий</h3>
+                <span style="font-size:12px; color:var(--text-muted);" id="eventsCountBadge">За 24 часа</span>
+              </div>
+
+              <div class="events-list" id="overviewEventsList">
+                <!-- Dynamically generated events -->
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <!-- ==================================================================
+             VIEW 2: EQUIPMENT (ОБОРУДОВАНИЕ)
+             ================================================================== -->
+        <section class="page-view" id="view-equipment">
+          <div class="view-header">
+            <div class="view-title-group">
+              <h1>Оборудование</h1>
+              <p class="view-subtitle">Реестр контролируемых холодильных камер, витрин и морозильных ларей</p>
+            </div>
+            
+            <div class="view-actions">
+              <button class="btn btn-primary" id="btnAddDeviceModal">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <line x1="12" y1="5" x2="12" y2="19"/>
+                  <line x1="5" y1="12" x2="19" y2="12"/>
+                </svg>
+                Добавить устройство
+              </button>
+            </div>
+          </div>
+
+          <!-- Equipment Table Toolbar -->
+          <div class="table-toolbar">
+            <div class="filter-group">
+              <div class="search-input-wrap">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <circle cx="11" cy="11" r="8"/>
+                  <line x1="21" y1="21" x2="16.65" y2="16.65"/>
+                </svg>
+                <input type="text" class="form-input" id="equipmentSearchInput" placeholder="Поиск по названию или локации...">
+              </div>
+
+              <select class="form-select" id="equipmentTypeFilter">
+                <option value="all">Все типы оборудования</option>
+                <option value="fridge">Холодильные шкафы и камеры</option>
+                <option value="freezer">Морозильные лари</option>
+                <option value="display">Кондитерские витрины</option>
+              </select>
+
+              <select class="form-select" id="equipmentStatusFilter">
+                <option value="all">Любой статус</option>
+                <option value="normal">В норме</option>
+                <option value="warning">Предупреждение</option>
+                <option value="danger">Критическое</option>
+              </select>
+            </div>
+            
+            <div style="font-size:12.5px; color:var(--text-muted);" id="equipmentTotalLabel">
+              Всего единиц: 3
+            </div>
+          </div>
+
+          <!-- Equipment Table -->
+          <div class="table-responsive">
+            <table class="data-table" id="equipmentTable">
+              <thead>
+                <tr>
+                  <th>Название устройства</th>
+                  <th>Тип оборудования</th>
+                  <th>Текущая температура</th>
+                  <th>Допустимый диапазон</th>
+                  <th>Состояние</th>
+                  <th>Последнее измерение</th>
+                  <th style="text-align:right;">Действия</th>
+                </tr>
+              </thead>
+              <tbody id="equipmentTableBody">
+                <!-- Rendered dynamically via JS -->
+              </tbody>
+            </table>
+          </div>
+        </section>
+
+        <!-- ==================================================================
+             VIEW 3: HISTORY (ИСТОРИЯ ИЗМЕРЕНИЙ)
+             ================================================================== -->
+        <section class="page-view" id="view-history">
+          <div class="view-header">
+            <div class="view-title-group">
+              <h1>История измерений</h1>
+              <p class="view-subtitle">Архив телеметрии температурных датчиков с фиксацией статусов</p>
+            </div>
+            
+            <div class="view-actions">
+              <button class="btn btn-secondary" id="btnExportCsv">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/>
+                  <polyline points="7 10 12 15 17 10"/>
+                  <line x1="12" y1="15" x2="12" y2="3"/>
+                </svg>
+                Экспорт в CSV
+              </button>
+            </div>
+          </div>
+
+          <!-- Filter Toolbar -->
+          <div class="table-toolbar">
+            <div class="filter-group">
+              <select class="form-select" id="historyDeviceFilter">
+                <option value="all">Все устройства</option>
+                <option value="1">Холодильная камера № 1</option>
+                <option value="2">Морозильный ларь для полуфабрикатов</option>
+                <option value="3">Кондитерская витрина «Carina»</option>
+              </select>
+
+              <select class="form-select" id="historyStatusFilter">
+                <option value="all">Все статусы</option>
+                <option value="normal">В норме</option>
+                <option value="warning">Выше нормы (Предупреждение)</option>
+                <option value="danger">Критическое отклонение</option>
+              </select>
+
+              <select class="form-select" id="historyTimeRangeFilter">
+                <option value="24">За последние 24 часа</option>
+                <option value="12">За последние 12 часов</option>
+                <option value="6">За последние 6 часов</option>
+                <option value="1">За последний час</option>
+              </select>
+            </div>
+
+            <div style="font-size:12.5px; color:var(--text-muted);" id="historyCountLabel">
+              Показано записей: 0
+            </div>
+          </div>
+
+          <!-- History Table -->
+          <div class="table-responsive">
+            <table class="data-table" id="historyTable">
+              <thead>
+                <tr>
+                  <th>Дата и время</th>
+                  <th>Устройство</th>
+                  <th>Температура</th>
+                  <th>Целевой диапазон</th>
+                  <th>Статус</th>
+                  <th>Примечание телеметрии</th>
+                </tr>
+              </thead>
+              <tbody id="historyTableBody">
+                <!-- Rendered dynamically via JS -->
+              </tbody>
+            </table>
+
+            <!-- Empty State when filtered results = 0 -->
+            <div class="table-empty-state" id="historyEmptyState" style="display:none;">
+              <svg class="empty-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+                <circle cx="12" cy="12" r="10"/>
+                <line x1="12" y1="8" x2="12" y2="12"/>
+                <line x1="12" y1="16" x2="12.01" y2="16"/>
+              </svg>
+              <div class="empty-title">Записи не найдены</div>
+              <div class="empty-desc">По выбранным параметрам фильтрации нет данных. Попробуйте сбросить фильтры.</div>
+              <button class="btn btn-secondary btn-sm" id="btnResetHistoryFilters">Сбросить фильтры</button>
+            </div>
+
+            <!-- Table Pagination -->
+            <div class="pagination-bar" id="historyPagination">
+              <span id="historyPaginationText">Записи 1 - 25 из 25</span>
+              <div class="pagination-controls">
+                <button class="btn btn-secondary btn-sm" id="btnPrevPage" disabled>Назад</button>
+                <button class="btn btn-secondary btn-sm" id="btnNextPage" disabled>Вперед</button>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <!-- ==================================================================
+             VIEW 4: ALERTS (ПРЕДУПРЕЖДЕНИЯ)
+             ================================================================== -->
+        <section class="page-view" id="view-alerts">
+          <div class="view-header">
+            <div class="view-title-group">
+              <h1>Предупреждения и инциденты</h1>
+              <p class="view-subtitle">Журнал температурных аномалий, выхода за допустимые пределы и сбоев</p>
+            </div>
+            
+            <div class="view-actions">
+              <button class="btn btn-secondary btn-sm" id="btnAcknowledgeAll">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <polyline points="20 6 9 17 4 12"/>
+                </svg>
+                Подтвердить все предупреждения
+              </button>
+            </div>
+          </div>
+
+          <!-- Alert Counters Summary -->
+          <div class="kpi-grid" style="margin-bottom:20px;">
+            <div class="kpi-card" style="border-left:4px solid var(--status-danger);">
+              <div class="kpi-title">Критические сбои</div>
+              <div class="kpi-value-row">
+                <span class="kpi-value" id="alertCountCritical">0</span>
+              </div>
+              <div class="kpi-footer">Требуют немедленного реагирования</div>
+            </div>
+
+            <div class="kpi-card" style="border-left:4px solid var(--status-warning);">
+              <div class="kpi-title">Предупреждения</div>
+              <div class="kpi-value-row">
+                <span class="kpi-value" id="alertCountWarning">1</span>
+              </div>
+              <div class="kpi-footer">Кратковременные превышения пределов</div>
+            </div>
+
+            <div class="kpi-card" style="border-left:4px solid var(--status-normal);">
+              <div class="kpi-title">Устранено за 24 ч</div>
+              <div class="kpi-value-row">
+                <span class="kpi-value" id="alertCountResolved">2</span>
+              </div>
+              <div class="kpi-footer">Температурный режим восстановлен</div>
+            </div>
+
+            <div class="kpi-card">
+              <div class="kpi-title">Среднее время реакции</div>
+              <div class="kpi-value-row">
+                <span class="kpi-value" style="font-size:24px;">8 мин</span>
+              </div>
+              <div class="kpi-footer">Регламент СанПиН: до 30 мин</div>
+            </div>
+          </div>
+
+          <!-- Alerts Table -->
+          <div class="table-responsive">
+            <table class="data-table" id="alertsTable">
+              <thead>
+                <tr>
+                  <th>Время события</th>
+                  <th>Устройство</th>
+                  <th>Зафиксировано</th>
+                  <th>Допустимый диапазон</th>
+                  <th>Причина инцидента</th>
+                  <th>Важность</th>
+                  <th>Статус обработки</th>
+                  <th style="text-align:right;">Действие</th>
+                </tr>
+              </thead>
+              <tbody id="alertsTableBody">
+                <!-- Dynamically generated from threshold violations -->
+              </tbody>
+            </table>
+          </div>
+        </section>
+
+        <!-- ==================================================================
+             VIEW 5: SETTINGS (НАСТРОЙКИ)
+             ================================================================== -->
+        <section class="page-view" id="view-settings">
+          <div class="view-header">
+            <div class="view-title-group">
+              <h1>Настройки системы</h1>
+              <p class="view-subtitle">Конфигурация температурных порогов, оповещений и параметров телеметрии</p>
+            </div>
+            
+            <div class="view-actions">
+              <button class="btn btn-secondary btn-sm" id="btnResetSettings">Сбросить по умолчанию</button>
+              <button class="btn btn-primary" id="btnSaveSettings">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <path d="M19 21H5a2 2 0 01-2-2V5a2 2 0 012-2h11l5 5v11a2 2 0 01-2 2z"/>
+                  <polyline points="17 21 17 13 7 13 7 21"/>
+                  <polyline points="7 3 7 8 15 8"/>
+                </svg>
+                Сохранить настройки
+              </button>
+            </div>
+          </div>
+
+          <!-- Validation Error Banner -->
+          <div class="validation-error-banner hidden" id="settingsValidationBanner">
+            <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2">
+              <circle cx="12" cy="12" r="10"/>
+              <line x1="12" y1="8" x2="12" y2="12"/>
+              <line x1="12" y1="16" x2="12.01" y2="16"/>
+            </svg>
+            <span id="settingsValidationMsg">Ошибка валидации: Нижний температурный порог не может быть выше или равен верхнему!</span>
+          </div>
+
+          <div class="settings-grid">
+            <!-- Left Card: Temperature Thresholds for Chamber #1 -->
+            <div class="settings-card">
+              <div class="settings-section-header">
+                <h3 class="settings-section-title">Температурные пороги (Камера № 1)</h3>
+                <p class="settings-section-desc">Определяют допустимый диапазон хранения охлажденных продуктов</p>
+              </div>
+
+              <div class="form-group">
+                <label class="form-label" for="settingLowerThreshold">Нижний температурный порог (Min)</label>
+                <div class="input-with-unit">
+                  <input type="number" step="0.1" class="form-input" id="settingLowerThreshold" value="2.0">
+                  <span class="input-unit-text">°C</span>
+                </div>
+                <div class="form-hint">При температуре ниже этого значения сработает сигнал о риске переморозки сырья.</div>
+              </div>
+
+              <div class="form-group">
+                <label class="form-label" for="settingUpperThreshold">Верхний температурный порог (Max)</label>
+                <div class="input-with-unit">
+                  <input type="number" step="0.1" class="form-input" id="settingUpperThreshold" value="6.0">
+                  <span class="input-unit-text">°C</span>
+                </div>
+                <div class="form-hint">При превышении этого предела формируется предупреждение о нарушении холодовой цепи.</div>
+              </div>
+
+              <div class="form-group">
+                <label class="form-label" for="settingAlertDelay">Задержка срабатывания тревоги</label>
+                <select class="form-select" id="settingAlertDelay" style="width:100%;">
+                  <option value="0">Без задержки (мгновенно при выходе из диапазона)</option>
+                  <option value="5">5 минут (защита от ложных тревог при открытии двери)</option>
+                  <option value="15" selected>15 минут (рекомендуется для среднетемпературных камер)</option>
+                  <option value="30">30 минут (для циклов автоматической оттайки испарителя)</option>
+                </select>
+                <div class="form-hint">Позволяет исключить ложные тревоги при штатной загрузке товаров или кратковременном открытии дверей.</div>
+              </div>
+            </div>
+
+            <!-- Right Card: Simulation & Testing Tools -->
+            <div class="settings-card">
+              <div class="settings-section-header">
+                <h3 class="settings-section-title">Интерактивная проверка сценариев</h3>
+                <p class="settings-section-desc">Позволяет протестировать реакцию интерфейса на различные события оборудования</p>
+              </div>
+
+              <p style="font-size:12.5px; color:var(--text-secondary); margin-bottom:12px;">
+                Выберите тестовое состояние датчика для немедленной проверки расчета предупреждений, изменения графиков и индикаторов статуса:
+              </p>
+
+              <div class="simulation-button-row">
+                <div class="btn-sim active" id="simModeNormal" data-temp="3.8" data-mode="normal">
+                  <span class="btn-sim-title">1. Штатный режим</span>
+                  <span class="btn-sim-desc">+3.8 °C • В допустимых пределах</span>
+                </div>
+
+                <div class="btn-sim" id="simModeDoor" data-temp="7.2" data-mode="warning">
+                  <span class="btn-sim-title">2. Открытие двери</span>
+                  <span class="btn-sim-desc">+7.2 °C • Предупреждение</span>
+                </div>
+
+                <div class="btn-sim" id="simModeFail" data-temp="11.4" data-mode="danger">
+                  <span class="btn-sim-title">3. Сбой компрессора</span>
+                  <span class="btn-sim-desc">+11.4 °C • Критическая авария</span>
+                </div>
+
+                <div class="btn-sim" id="simModeFreeze" data-temp="-1.2" data-mode="freeze">
+                  <span class="btn-sim-title">4. Переохлаждение</span>
+                  <span class="btn-sim-desc">-1.2 °C • Риск порчи молочки</span>
+                </div>
+              </div>
+
+              <div style="margin-top:20px; padding-top:16px; border-top:1px solid var(--border-color);">
+                <label class="form-label">Интервал опроса телеметрии</label>
+                <select class="form-select" id="settingPollInterval" style="width:100%;">
+                  <option value="5000">Каждые 5 секунд (демонстрационный ускоренный)</option>
+                  <option value="10000" selected>Каждые 10 секунд (по умолчанию)</option>
+                  <option value="30000">Каждые 30 секунд</option>
+                  <option value="60000">Каждую 1 минуту</option>
+                </select>
+              </div>
+            </div>
+          </div>
+        </section>
+
+      </main>
+    </div>
+  </div>
+
+  <!-- ======================================================================
+       MODAL 1: ARDUINO HARDWARE INTEGRATION MODAL
+       ====================================================================== -->
+  <div class="modal-overlay" id="arduinoModal">
+    <div class="modal-dialog">
+      <div class="modal-header">
+        <h2 class="modal-title">Подключение физического оборудования</h2>
+        <button class="modal-close-btn" id="btnCloseArduinoModal" aria-label="Закрыть">
+          <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2">
+            <line x1="18" y1="6" x2="6" y2="18"/>
+            <line x1="6" y1="6" x2="18" y2="18"/>
+          </svg>
+        </button>
+      </div>
+
+      <div class="modal-body">
+        <p style="margin-bottom:16px;">
+          ColdGuard спроектирован для работы с микроконтроллером <strong>Arduino Uno R3</strong> и прецизионным цифровым датчиком температуры <strong>Dallas DS18B20</strong>.
+        </p>
+
+        <!-- Current Honest Hardware Status -->
+        <div class="status-callout warning">
+          <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" style="flex-shrink:0;">
+            <circle cx="12" cy="12" r="10"/>
+            <line x1="12" y1="8" x2="12" y2="12"/>
+            <line x1="12" y1="16" x2="12.01" y2="16"/>
+          </svg>
+          <div id="modalHardwareStatusText">
+            <strong>Статус: Физический датчик не подключен</strong><br>
+            В настоящее время активен <em>демонстрационный генератор телеметрии</em>. Для перехода на реальные измерения выполните шаги ниже.
+          </div>
+        </div>
+
+        <div style="margin-top:20px;">
+          <!-- Step 1 -->
+          <div class="guide-step">
+            <div class="step-num">1</div>
+            <div class="step-content">
+              <div class="step-heading">Физическое подключение датчика DS18B20</div>
+              <p>Подключите датчик DS18B20 к плате Arduino Uno по схеме 1-Wire с подтягивающим резистором 4.7 кОм:</p>
+              <ul style="padding-left:20px; margin-top:6px; font-size:12.5px; line-height:1.6;">
+                <li><strong>Красный провод (VCC):</strong> к выводу <code>5V</code> на Arduino</li>
+                <li><strong>Черный провод (GND):</strong> к выводу <code>GND</code> на Arduino</li>
+                <li><strong>Желтый/синий провод (DATA):</strong> к цифровому пину <code>D2</code> на Arduino</li>
+                <li><strong>Резистор 4.7 кОм:</strong> между линиями <code>5V</code> и <code>DATA</code></li>
+              </ul>
+            </div>
+          </div>
+
+          <!-- Step 2 -->
+          <div class="guide-step">
+            <div class="step-num">2</div>
+            <div class="step-content">
+              <div class="step-heading">Прошивка Arduino (Скетч для передачи JSON в COM-порт)</div>
+              <p>Загрузите в плату скетч через Arduino IDE. Он считывает температуру и отправляет структурированные пакеты:</p>
+              <div class="code-snippet-box">
+void loop() {<br>
+&nbsp;&nbsp;sensors.requestTemperatures();<br>
+&nbsp;&nbsp;float tempC = sensors.getTempCByIndex(0);<br>
+&nbsp;&nbsp;// Передача JSON в Serial (Baud: 9600)<br>
+&nbsp;&nbsp;Serial.print("{\"temp\": ");<br>
+&nbsp;&nbsp;Serial.print(tempC, 2);<br>
+&nbsp;&nbsp;Serial.println(", \"device\": 1}");<br>
+&nbsp;&nbsp;delay(5000);<br>
+}
+              </div>
+            </div>
+          </div>
+
+          <!-- Step 3 -->
+          <div class="guide-step">
+            <div class="step-num">3</div>
+            <div class="step-content">
+              <div class="step-heading">Локальный мост (Serial &rarr; WebSocket)</div>
+              <p>Для непрерывного мониторинга 24/7 запустите локальный мост ColdGuard, который считывает показания из COM-порта и транслирует их веб-интерфейсу через локальный WebSocket (<code>ws://127.0.0.1:8765</code>):</p>
+              <div class="code-snippet-box">
+python bridge/serial_bridge.py<br>
+<span style="color:#94a3b8;"># Или для тестирования без датчика:</span><br>
+python bridge/serial_bridge.py --demo
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="status-callout info">
+          <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" style="flex-shrink:0;">
+            <circle cx="12" cy="12" r="10"/>
+            <path d="M12 16v-4M12 8h.01"/>
+          </svg>
+          <div>
+            <strong>Важно об интеграции:</strong> Основным и рекомендованным промышленным способом подключения является Python-мост. Браузерный Web Serial API захватывает COM-порт эксклюзивно и заблокирует работу фонового моста.
+          </div>
+        </div>
+      </div>
+
+      <div class="modal-footer">
+        <button class="btn btn-secondary" id="btnTestWebSerial">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <circle cx="12" cy="12" r="10"/>
+            <path d="M12 16v-4M12 8h.01"/>
+          </svg>
+          Информация о Web Serial API
+        </button>
+        <button class="btn btn-primary" id="btnConfirmArduinoModal">Понятно</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ======================================================================
+       MODAL 2: ADD NEW DEVICE MODAL
+       ====================================================================== -->
+  <div class="modal-overlay" id="addDeviceModal">
+    <div class="modal-dialog">
+      <div class="modal-header">
+        <h2 class="modal-title">Добавление холодильного оборудования</h2>
+        <button class="modal-close-btn" id="btnCloseDeviceModal" aria-label="Закрыть">
+          <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2">
+            <line x1="18" y1="6" x2="6" y2="18"/>
+            <line x1="6" y1="6" x2="18" y2="18"/>
+          </svg>
+        </button>
+      </div>
+
+      <form id="addDeviceForm">
+        <div class="modal-body">
+          <div class="form-group">
+            <label class="form-label" for="newDeviceName">Название камеры / витрины *</label>
+            <input type="text" class="form-input" id="newDeviceName" style="width:100%;" required placeholder="Например: Морозильный ларь для мороженого">
+          </div>
+
+          <div class="form-group">
+            <label class="form-label" for="newDeviceType">Тип оборудования *</label>
+            <select class="form-select" id="newDeviceType" style="width:100%;" required>
+              <option value="fridge">Холодильный шкаф (+0 ... +7 °C)</option>
+              <option value="freezer">Морозильный ларь (-18 ... -24 °C)</option>
+              <option value="display">Кондитерская витрина (+2 ... +10 °C)</option>
+            </select>
+          </div>
+
+          <div class="form-group">
+            <label class="form-label" for="newDeviceLocation">Местоположение / Зона</label>
+            <input type="text" class="form-input" id="newDeviceLocation" style="width:100%;" placeholder="Торговый зал, склад сырья, пекарня...">
+          </div>
+
+          <div style="display:grid; grid-template-columns:1fr 1fr; gap:16px;">
+            <div class="form-group">
+              <label class="form-label" for="newDeviceMinTemp">Нижний порог (°C) *</label>
+              <input type="number" step="0.5" class="form-input" id="newDeviceMinTemp" style="width:100%;" value="2.0" required>
+            </div>
+            <div class="form-group">
+              <label class="form-label" for="newDeviceMaxTemp">Верхний порог (°C) *</label>
+              <input type="number" step="0.5" class="form-input" id="newDeviceMaxTemp" style="width:100%;" value="6.0" required>
+            </div>
+          </div>
+
+          <div class="form-group">
+            <label class="form-label" for="newDeviceSensorId">Идентификатор датчика DS18B20 (ROM)</label>
+            <input type="text" class="form-input" id="newDeviceSensorId" style="width:100%; font-family:var(--font-mono);" placeholder="28-FF641E000000 (или авто-определение)">
+            <div class="form-hint">Если датчик еще не смонтирован, устройство будет добавлено в демонстрационном статусе ожидания телеметрии.</div>
+          </div>
+        </div>
+
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" id="btnCancelDeviceModal">Отмена</button>
+          <button type="submit" class="btn btn-primary">Зарегистрировать устройство</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- Toast Notification Container -->
+  <div class="toast-container" id="toastContainer"></div>
+
+  <!-- Application Script -->
+  <script src="script.js"></script>
+</body>
+</html>
